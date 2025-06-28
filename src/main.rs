@@ -1,118 +1,31 @@
+use std::{env, fmt::Display, process::exit};
+
+mod pattern;
+mod state;
+mod word_filter;
+
+use arrayvec::{ArrayString, ArrayVec};
+
+use crate::{pattern::Pattern, word_filter::WordFilter};
+
 const FILE: &'static str = include_str!("../list.txt");
-const LOWER_CASE_A_VALUE: u8 = 'a' as u8;
-const SPACE_VALUE: u8 = ' ' as u8;
-const UNDERSCORE_VALUE: u8 = '_' as u8;
+const LOWER_CASE_A_VALUE: u8 = b'a';
+const SPACE_VALUE: u8 = b' ';
+const UNDERSCORE_VALUE: u8 = b'_';
+
+const message_de_rappel: &str =
+    "Rappel quand à l'utilisation de la commande: /tusmo2 <nombre de lettre> <premiére lettre>";
 
 fn main() {
-    let len = 0;
+    let vars: Vec<String> = std::env::args().skip(1).collect();
 
-    let words = Words::load(len);
-}
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Default)]
-enum State {
-    #[default]
-    Placed,
-    ToPlaced,
-    Wrong,
-}
-
-#[derive(Clone, Debug, Default)]
-struct CharState {
-    state: State,
-    char: u8,
-    strict: bool,
-}
-impl CharState {
-    fn new(state: State, char: u8, strict: bool) -> Self {
-        Self {
-            state,
-            char,
-            strict,
-        }
-    }
-}
-
-struct Pattern {
-    pattern: Vec<CharState>,
-}
-
-fn get_availabality_and_strictness(
-    anwser: &[u8],
-    guess: &[u8],
-) -> Result<([i32; 26], [bool; 26]), String> {
-    let mut available = [0; 26];
-    let mut strict = [false; 26];
-    for i in 0..anwser.len() {
-        let char_pattern = anwser[i];
-        let char_guess = guess[i];
-
-        match char_pattern {
-            c if c == char_pattern => {
-                continue;
-            }
-            UNDERSCORE_VALUE => {
-                available[(char_guess - LOWER_CASE_A_VALUE) as usize] += 1;
-            }
-            SPACE_VALUE => {
-                strict[(char_guess - LOWER_CASE_A_VALUE) as usize] = true;
-            }
-            c => {
-                return Err(format!(
-                    "Imposible de lire le pattern car celui-ci est érroné mauvais char: {}",
-                    c as char
-                ));
-            }
-        }
-    }
-    Ok((available, strict))
-}
-
-impl Pattern {
-    fn from_awnser_and_pattern(anwser: &str, guess: &str) -> Result<Self, String> {
-        let len = anwser.len();
-        if guess.len() != len {
-            return Err(format!(
-                "Pattern and guess size do not match {} : {}",
-                guess.len(),
-                len
-            ));
-        }
-
-        let awnser = anwser.as_bytes();
-        let guess = guess.as_bytes();
-
-        let mut result = vec![CharState::default(); len];
-
-        //permet de savoir les lettres disponible c'est a dire celle qui sont sont mal placé
-        let (mut available, strict) = get_availabality_and_strictness(guess, awnser)?;
-        for i in 0..len {
-            let char_awnser = awnser[i];
-            let char_guess = guess[i];
-            result[i].char = char_guess;
-
-            match char_awnser {
-                c if c == char_awnser => {
-                    continue;
-                }
-                UNDERSCORE_VALUE => {
-                    let maps_index = (char_guess - LOWER_CASE_A_VALUE) as usize;
-
-                    if available[maps_index] > 0 {
-                        available[maps_index] -= 1;
-
-                        result[i].state = State::ToPlaced;
-                        result[i].strict = strict[maps_index];
-                    } else {
-                        result[i].char = char_guess;
-                    }
-                }
-                SPACE_VALUE => {}
-                c => unsafe { std::hint::unreachable_unchecked() },
-            }
-        }
-
-        let strict = [false; 26];
-    }
+    let nb_letter = vars[0].as_str().parse::<u8>().unwrap_or_else(|e| {
+        eprintln!("Une erreur est survenue lors du parsing du nombre de lettre:\n{e}");
+        eprintln!("{}", message_de_rappel);
+        exit(1);
+    });
+    let _words = Words::load(len);
+    if nb_letter != 5 {}
 }
 
 #[derive(Debug)]
