@@ -1,6 +1,6 @@
 use arrayvec::ArrayVec;
 
-use crate::{LOWER_CASE_A_VALUE, pattern::get_available_and_needed};
+use crate::{LOWER_CASE_A_VALUE, pattern::get_available_and_needed, words::Words};
 
 #[derive(Default, Debug, Clone)]
 pub struct WordFilter {
@@ -42,6 +42,11 @@ impl WordFilter {
 
         word_filter
     }
+    pub fn from_pattern_str(pattern_str: &str) -> Self {
+        let pattern = pattern_str.as_bytes();
+        let mut count
+    }
+
     pub fn filter(&self, to_filter: &[u8]) -> bool {
         for &(position, val, is_wanted) in &self.position_filter {
             if (to_filter[position] == val) != is_wanted {
@@ -79,4 +84,34 @@ fn get_counts(word: &[u8]) -> [u8; 26] {
         counts[(letter - LOWER_CASE_A_VALUE) as usize] += 1;
     }
     counts
+}
+mod test {
+    use crate::word_filter::WordFilter;
+
+    #[test]
+    fn test_filter() {
+        let filter = WordFilter::from_answer_and_guess(b"marines", b"aigrise");
+        assert!(
+            filter.filter(b"marines"),
+            "Dois absolument passer les filtre ne dois jamais être capable de refuser la réponse"
+        );
+        assert!(
+            !filter.filter(b"aigrise"),
+            "Le filtre ne doit pas pouvoir accepter le mot refuser qui a permis de créer le filtre"
+        );
+        assert_eq!(filter.filter(b"ramsine"), false);
+
+        let filter = WordFilter::from_answer_and_guess(b"eaae", b"eeie");
+        assert!(
+            !filter.filter(b"ezee"),
+            "'e' est strictement limité à 2 occurrences (car trois 'e' on été essayé et un 'e' à repondu Wrong), mais 'ezee' en contient 3"
+        );
+        let filter = WordFilter::from_first_letter(b'a');
+
+        assert!(
+            !filter.filter(b"ba"),
+            "should filter as ba do not start with letter 'a' "
+        );
+        dbg!(filter);
+    }
 }

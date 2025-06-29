@@ -72,23 +72,3 @@ impl std::fmt::Display for Pattern {
         write!(f, "{}", buffer)
     }
 }
-
-#[test]
-fn test_filter() {
-    let filter = WordFilter::from_answer_and_guess(b"marines", b"aigrise");
-    assert!(
-        filter.filter(b"marines"),
-        "Dois absolument passer les filtre ne dois jamais être capable de refuser la réponse"
-    );
-    assert!(
-        !filter.filter(b"aigrise"),
-        "Le filtre ne doit pas pouvoir accepter le mot refuser qui a permis de créer le filtre"
-    );
-    assert_eq!(filter.filter(b"ramsine"), false);
-
-    let filter = WordFilter::from_answer_and_guess(b"eaae", b"eeie");
-    assert!(
-        !filter.filter(b"ezee"),
-        "'e' est strictement limité à 2 occurrences (car trois 'e' on été essayé et un 'e' à repondu Wrong), mais 'ezee' en contient 3"
-    );
-}
